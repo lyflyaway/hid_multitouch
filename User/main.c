@@ -27,10 +27,11 @@ void Delay(vu32 nCount)
 
 
 extern void USB_Init(void);
-
+void Joystick_Send(void);
 
 int main(void)
 {
+    uint8_t counter = 0;
 //	float ADC_ConvertedValueLocal;
 //	__IO u16 Current_Temp;
 //	__IO u16 V25 = 0x6E2;		//temperature CON
@@ -68,6 +69,10 @@ int main(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
     GPIO_SetBits(GPIOC, GPIO_Pin_9);
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -84,6 +89,19 @@ int main(void)
 	
 	while(1)
 	{
+	    if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_8))
+	    {
+	        if (counter++ >= 100)
+	        {
+	            counter = 0;
+                Joystick_Send();
+//                while (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_8));
+	        }
+	    }
+	    else
+	    {
+	        counter = 0;
+	    }
 //	    GPIO_ResetBits(GPIOC, GPIO_Pin_9);
 //        Delay(0xFFFFF);	
 //	    GPIO_SetBits(GPIOC, GPIO_Pin_9);

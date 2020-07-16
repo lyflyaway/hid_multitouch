@@ -459,4 +459,85 @@ uint8_t *Joystick_SetReport(uint16_t Length)//处理Set_Report
     return &Report_Buffer[pInformation->Ctrl_Info.Usb_wOffset];
 }
 
+void Joystick_Send(void)
+{
+    //  对于本代码2点触控每个数据包由14个字节组成分别为
+    //  InReport[0]     设备ID 固定值为TOUCH_REPORT_ID
+    //  InReport[1]     第一点触摸情况 bit1:1有触摸 0没触摸  bit2: 1在范围内  0不在范围内
+    //  InReport[2]     第一点ID  每个点在抬起之前不能改变     0~255
+    //  InReport[3]     第一点X坐标低8位
+    //  InReport[4]     第一点X坐标高8位
+    //  InReport[5]     第一点Y坐标低8位
+    //  InReport[6]     第一点Y坐标高8位
+    //  InReport[7]     第二点触摸情况 bit1:1有触摸 0没触摸  bit2: 1在范围内  0不在范围内
+    //  InReport[8]     第二点ID  每个点在抬起之前不能改变     0~255
+    //  InReport[9]     第二点X坐标低8位
+    //  InReport[10]    第二点X坐标高8位
+    //  InReport[11]    第二点Y坐标低8位
+    //  InReport[12]    第二点Y坐标高8位
+    //  InReport[13]    此数据包中有效的点数
+    static uint8_t i = 0;
+    uint8_t Buffer[14];
+    if(i < 20)
+    {
+        Buffer[0]   = 0x01;
+        Buffer[1]   = 0x07;
+        Buffer[2]   = 0x01;
+        Buffer[3]   = (720 + i) & 0xFF;
+        Buffer[4]   = (720 + i) >> 8;
+        Buffer[5]   = (135 + i) & 0xFF;
+        Buffer[6]   = (135 + i) >> 8;
+        Buffer[7]   = 0x00;
+        Buffer[8]   = 0x00;
+        Buffer[9]   = 0x00;
+        Buffer[10]  = 0x00;
+        Buffer[11]  = 0x00;
+        Buffer[12]  = 0x00; 
+        Buffer[13]  = 0x01;
+    }
+    else if(i < 40)
+    {
+        Buffer[0]   = 0x01;
+        Buffer[1]   = 0x06;
+        Buffer[2]   = 0x01;
+        Buffer[3]   = (720 + i) & 0xFF;
+        Buffer[4]   = (720 + i) >> 8;
+        Buffer[5]   = (135 + i) & 0xFF;
+        Buffer[6]   = (135 + i) >> 8;
+        Buffer[7]   = 0x00;
+        Buffer[8]   = 0x00;
+        Buffer[9]   = 0x00;
+        Buffer[10]  = 0x00;
+        Buffer[11]  = 0x00;
+        Buffer[12]  = 0x00; 
+        Buffer[13]  = 0x01;
+    }
+    else
+    {
+        Buffer[0]   = 0x01;
+        Buffer[1]   = 0x00;
+        Buffer[2]   = 0x00;
+        Buffer[3]   = 0x00;
+        Buffer[4]   = 0x00;
+        Buffer[5]   = 0x00;
+        Buffer[6]   = 0x00;
+        Buffer[7]   = 0x00;
+        Buffer[8]   = 0x00;
+        Buffer[9]   = 0x00;
+        Buffer[10]  = 0x00;
+        Buffer[11]  = 0x00;
+        Buffer[12]  = 0x00; 
+        Buffer[13]  = 0x00;
+    }
+    i++;
+    if(i > 60)
+    {
+        i = 0;
+    }
+    UserToPMABufferCopy(Buffer, GetEPTxAddr(ENDP1) , 14);
+    SetEPTxValid(ENDP1);
+    return;
+}
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
